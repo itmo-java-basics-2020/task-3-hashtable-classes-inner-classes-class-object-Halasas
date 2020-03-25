@@ -34,44 +34,6 @@ public class HashTable {
         threshold = (int) (data.length * loadFactor);
     }
 
-    private int getHashCode(Object key) {
-        return Math.abs(key.hashCode() % data.length);
-    }
-
-    private Integer getIndex(Object key) {
-        if (key == null)
-            return null;
-        int start_index = getHashCode(key);
-        int index = start_index;
-
-        while (data[index] != null) {
-            int elementKeyHash = data[index].getKey().hashCode();
-            int keyHash = key.hashCode();
-            if (data[index].isNotDeleted() && elementKeyHash == keyHash && data[index].getKey().equals(key)) {
-                return index;
-            }
-            index++;
-            index %= data.length;
-            if (index == start_index) {
-                return null;
-            }
-        }
-        return null;
-    }
-
-    private void resize() {
-        int newLength = data.length * (int) Math.ceil(1.0 / loadFactor + 0.1); // newSize = data.length * 2 or bigger
-        HashTableElement[] buffer = data;
-        data = new HashTableElement[newLength];
-        threshold = (int) (data.length * loadFactor);
-        size = 0;
-        for (HashTableElement element : buffer) {
-            if (element != null && element.isNotDeleted()) {
-                put(element.getKey(), element.getValue());
-            }
-        }
-    }
-
     Object put(Object key, Object value) {
         if (key == null || value == null)
             throw new NullPointerException();
@@ -120,7 +82,49 @@ public class HashTable {
         return size;
     }
 
+    private int getHashCode(Object key) {
+        return Math.abs(key.hashCode() % data.length);
+    }
+
+    private Integer getIndex(Object key) {
+        if (key == null)
+            return null;
+        int start_index = getHashCode(key);
+        int index = start_index;
+
+        while (data[index] != null) {
+            int elementKeyHash = data[index].getKey().hashCode();
+            int keyHash = key.hashCode();
+            if (data[index].isNotDeleted() && elementKeyHash == keyHash && data[index].getKey().equals(key)) {
+                return index;
+            }
+            index++;
+            index %= data.length;
+            if (index == start_index) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private void resize() {
+        int newLength = data.length * (int) Math.ceil(1.0 / loadFactor + 0.1); // newSize = data.length * 2 or bigger
+        HashTableElement[] buffer = data;
+        data = new HashTableElement[newLength];
+        threshold = (int) (data.length * loadFactor);
+        size = 0;
+        for (HashTableElement element : buffer) {
+            if (element != null && element.isNotDeleted()) {
+                put(element.getKey(), element.getValue());
+            }
+        }
+    }
+
     private static class HashTableElement {
+        private boolean isDeleted;
+        private Object key;
+        private Object value;
+
         public HashTableElement(Object key, Object value) {
             if (key == null || value == null)
                 throw new IllegalArgumentException();
@@ -128,10 +132,6 @@ public class HashTable {
             this.value = value;
             isDeleted = false;
         }
-
-        private boolean isDeleted;
-        private Object key;
-        private Object value;
 
         public void Delete() {
             isDeleted = true;
